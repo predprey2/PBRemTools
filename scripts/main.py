@@ -2,7 +2,6 @@ import os
 import io
 import json
 import numpy as np
-import cv2
 import re
 
 import gradio as gr
@@ -12,23 +11,10 @@ from modules import script_callbacks
 import modules.shared as shared
 from modules import images
 
-from scripts.td_abg import get_foreground
-from scripts.convertor import pil2cv
 from scripts.batch_dir import save_image_dir, modify_basename
+from scripts.utils import process_image, model_list
 
-try:
-    from modules.paths_internal import extensions_dir
-except Exception:
-    from modules.extensions import extensions_dir
-
-from collections import OrderedDict
 from PIL import Image
-
-model_cache = OrderedDict()
-sam_model_dir = os.path.join(
-    extensions_dir, "PBRemTools/models/")
-model_list = [f for f in os.listdir(sam_model_dir) if os.path.isfile(
-    os.path.join(sam_model_dir, f)) and f.split('.')[-1] != 'txt']
 
 def processing(single_image, batch_image, input_dir, output_dir, output_mask_dir, show_result, input_tab_state, *rem_args):
     # 0: single
@@ -77,12 +63,6 @@ def processing(single_image, batch_image, input_dir, output_dir, output_mask_dir
             return processed
         else:
             return None
-
-def process_image(target_image, *rem_args):
-    image = pil2cv(target_image)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    mask, image = get_foreground(image, *rem_args)
-    return image, mask
 
 class Script(scripts.Script):
   def __init__(self) -> None:
